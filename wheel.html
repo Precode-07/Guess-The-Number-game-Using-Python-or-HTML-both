@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VendoGuess Deluxe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: #121212; color: #eee; font-family: 'Poppins', sans-serif; display: flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+    #app { background:#1f1f1f; padding:2rem; border-radius:12px; width:360px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.5); }
+    h1 { margin-bottom:0.5rem; }
+    input { width:80px; padding:0.5rem; font-size:1rem; margin:0.5rem; border-radius:6px; border:none; }
+    button { padding:0.6rem 1.2rem; font-size:1rem; border:none; color:#fff; background:rgb(35, 248, 237); border-radius:6px; cursor:pointer; transition: background 0.3s; }
+    button:hover { background:rgb(93, 0, 255); }
+    #vendo { font-family:monospace; font-size:2rem; height:2.5rem; margin:1rem 0; }
+    #badge { margin:1rem 0; }
+    .badge { display:inline-block; padding:.4rem .8rem; border-radius:12px; background:#333; color:#ff6; font-weight:600; animation: pop 0.4s ease-out; }
+    @keyframes pop { 0% { transform:scale(0); } 100% { transform:scale(1); } }
+    #feedback { margin-top:1rem; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>🎮 VendoGuess Deluxe</h1>
+    <div id="setup">
+      <input id="max" type="number" min="1" placeholder="Max (e.g.100)" />
+      <button id="start">Start Game</button>
+    </div>
+    <div id="game" style="display:none;">
+      <div>
+        <input id="guess" type="number" placeholder="Your guess" />
+        <button id="submit">Guess</button>
+      </div>
+      <div id="vendo">[▒▒▒] 🎯</div>
+      <div id="feedback"></div>
+      <div id="badge"></div>
+    </div>
+  </div>
+  <script>
+    const frames = ["[▒▒▒] 🎯","[▓▒▒] 🎯","[▒▓▒] 🎯","[▒▒▓] 🎯"];
+    let target, maxN;
+    const maxInput = document.getElementById('max');
+    const guessInput = document.getElementById('guess');
+    const startBtn = document.getElementById('start');
+    const submitBtn = document.getElementById('submit');
+    const vendo = document.getElementById('vendo');
+    const feedback = document.getElementById('feedback');
+    const badgeArea = document.getElementById('badge');
+    const game = document.getElementById('game');
+
+    function spin(val = null) {
+      let count = 0;
+      const id = setInterval(() => {
+        const frame = frames[Math.floor(Math.random()*frames.length)];
+        vendo.textContent = val === null ? frame : frame.replace('🎯', String(val).padStart(3,' '));
+        if (++count >= 6) clearInterval(id);
+      }, 100);
+    }
+
+    startBtn.onclick = () => {
+      maxN = parseInt(maxInput.value) || 100;
+      target = Math.floor(Math.random()*maxN) + 1;
+      game.style.display = 'block';
+      feedback.textContent = '';
+      badgeArea.innerHTML = '';
+      guessInput.value = '';
+      spin();
+    };
+
+    submitBtn.onclick = () => {
+      const guess = parseInt(guessInput.value);
+      if (!guess || guess < 1 || guess > maxN) {
+        feedback.textContent = '❗ Enter a valid guess';
+        return;
+      }
+      spin(guess);
+      setTimeout(() => {
+        const diff = Math.abs(target - guess);
+        const accuracy = (1 - diff/maxN) * 100;
+        if (guess === target) {
+          feedback.innerHTML = `🎉 <strong>You nailed it!</strong> The number was ${target}.`;
+          badgeArea.innerHTML = `<span class="badge">🏆 WINNER!</span>`;
+        } else if (accuracy >= 70) {
+          feedback.innerHTML = `👏 So close (${guess} vs ${target}) — ${accuracy.toFixed(1)}% accurate!`;
+          badgeArea.innerHTML = `<span class="badge">🥈 Nice!</span>`;
+        } else {
+          feedback.innerHTML = `❌ You guessed ${guess}, target was ${target}.`;
+        }
+      }, 700);
+    };
+  </script>
+</body>
+</html>
